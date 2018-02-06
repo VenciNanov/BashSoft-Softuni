@@ -1,14 +1,11 @@
-﻿using System;
-
-namespace Bashsoft
+﻿namespace BashSoft
 {
-    class Program
+    public class Launcher
     {
-        static void Main(string[] args)
+        public static void Main()
         {
-            IOManager.CreateDirectoryInCurrentFolder("pesho");
-
-            IOManager.TraverseDirectory(1);
+            Greeting.Message();
+            InputReader.StartReadingCommands();
         }
     }
 }
