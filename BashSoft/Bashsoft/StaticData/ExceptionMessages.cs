@@ -1,4 +1,6 @@
-﻿namespace BashSoft
+﻿using System;
+
+namespace BashSoft
 {
     public static class ExceptionMessages
     {
@@ -33,5 +35,15 @@
         public const string InvalidTakeCommand = "The take command expected does not match the format wanted!”";
 
         public const string InvalidTakeQuantityParameter = "The take quantity expected does not match the format wanted!”";
+
+        public const string StudentAlreadyEnrolledInGivvenCourse = "The {0} already exist in {1}.";
+
+        public const string NotEnrolledInCourse = "Student must be enrolled in a course before you set his mark.";
+
+        public const string InvalidNumberOfScores = "The number of scores for the given course is greater than possible.";
+
+        public const string InvalidScore = "The number for the score you've entered is not in the range of 0 - 100";
+
+        public static Exception NullOrEmptyValue { get; internal set; }
     }
 }

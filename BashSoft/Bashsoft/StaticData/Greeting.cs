@@ -7,14 +7,15 @@ namespace BashSoft
         public static void Message()
         {
             string message = $"Hello {Environment.UserName}!";
-
-            int leftOffSet = (Console.WindowWidth / 2) - 10;
+           
+            int leftOffSet = (Console.WindowWidth / 2)-10;
             int topOffSet = (Console.WindowHeight / 2);
             Console.SetCursorPosition(leftOffSet, topOffSet);
 
             Console.ForegroundColor = ConsoleColor.Green;
 
-            Console.WriteLine(message);
+            Console.WriteLine(message+Environment.NewLine);
+           
 
             Console.ResetColor();
 

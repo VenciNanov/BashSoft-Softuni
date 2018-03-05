@@ -1,24 +1,17 @@
-﻿using System;
+﻿using BashSoft.Exceptions;
+using System;
 using System.IO;
 
 namespace BashSoft
 {
-    public static class Tester
+    public class Tester
     {
-        public static void CompareContent(string userOutputPath, string expectedOutputPath)
+        public void CompareContent(string userOutputPath, string expectedOutputPath)
         {
-            OutputWriter.WriteMessageOnNewLine("Reading files...");
+
             try
             {
-                if (userOutputPath.LastIndexOf("\\") < 0)
-                {
-                    userOutputPath = SessionData.currentPath + "\\" + userOutputPath;
-                }
-
-                if (expectedOutputPath.LastIndexOf("\\") < 0)
-                {
-                    expectedOutputPath = SessionData.currentPath + "\\" + expectedOutputPath;
-                }
+                OutputWriter.WriteMessageOnNewLine("Reading files...");
 
                 string mismatchPath = GetMishmatchPath(expectedOutputPath);
 
@@ -29,16 +22,16 @@ namespace BashSoft
                 string[] mismatches =
                     GetLinesWithPossibleMismatches(actualOutputLines, expectedOutputLines, out hasMismatch);
 
-                PrintOutput(mismatches, hasMismatch, mismatchPath);
+                this.PrintOutput(mismatches, hasMismatch, mismatchPath);
                 OutputWriter.WriteMessageOnNewLine("Files read!");
             }
-            catch (FileNotFoundException)
+            catch (IOException)
             {
-                OutputWriter.DisplayException(ExceptionMessages.InvalidPath);
+                throw new InvalidPathException();
             }
         }
 
-        private static void PrintOutput(string[] mismatches, bool hasMismatch, string mismatchPath)
+        private void PrintOutput(string[] mismatches, bool hasMismatch, string mismatchPath)
         {
             if (hasMismatch)
             {
@@ -47,21 +40,14 @@ namespace BashSoft
                     OutputWriter.WriteMessageOnNewLine(line);
                 }
 
-                try
-                {
-                    File.WriteAllLines(mismatchPath, mismatches);
-                }
-                catch (DriveNotFoundException)
-                {
-                    OutputWriter.DisplayException(ExceptionMessages.InvalidPath);
-                }
+                File.WriteAllLines(mismatchPath, mismatches);
 
                 return;
             }
             OutputWriter.WriteMessageOnNewLine("File are identical. There are no mismatches.");
         }
 
-        private static string[] GetLinesWithPossibleMismatches(string[] actualOutputLines, string[] expectedOutputLines, out bool hasMismatch)
+        private string[] GetLinesWithPossibleMismatches(string[] actualOutputLines, string[] expectedOutputLines, out bool hasMismatch)
         {
             hasMismatch = false;
             string output = string.Empty;
@@ -103,7 +89,7 @@ namespace BashSoft
             return mismatches;
         }
 
-        private static string GetMishmatchPath(string expectedOutputPath)
+        private string GetMishmatchPath(string expectedOutputPath)
         {
             int indexOf = expectedOutputPath.LastIndexOf("\\");
             string directoryPath = expectedOutputPath.Substring(0, indexOf);
