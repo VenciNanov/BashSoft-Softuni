@@ -1,10 +1,12 @@
-﻿using System;
+﻿using BashSoft.Contracts;
+using BashSoft.Exceptions;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
 namespace BashSoft
 {
-    public class IOManager
+    public class IOManager : IDirectoryManager
     {
         public void TraverseDirectory(int depth)
         {
@@ -37,7 +39,6 @@ namespace BashSoft
                     foreach (string directoryPath in Directory.GetDirectories(currentPath))
                     {
                         subFolders.Enqueue(directoryPath);
-
                     }
                 }
                 catch (UnauthorizedAccessException)
@@ -56,7 +57,7 @@ namespace BashSoft
             }
             catch (ArgumentException)
             {
-                throw new ArgumentException(ExceptionMessages.ForbiddenSymbolsContainedInName);
+                throw new InvalidFileNameException();
             }
         }
 
@@ -73,9 +74,8 @@ namespace BashSoft
                 }
                 catch (ArgumentOutOfRangeException)
                 {
-                    throw new ArgumentOutOfRangeException("indexOfLasSlash", ExceptionMessages.UnableToGoHigherInPartitionHierarchy);
+                    throw new ArgumentOutOfRangeException("indexOfLastSlash", ExceptionMessages.UnableToGoHigherInPartitionHierarchy);
                 }
-
             }
             else
             {
@@ -89,7 +89,7 @@ namespace BashSoft
         {
             if (!Directory.Exists(absolutePath))
             {
-                throw new DirectoryNotFoundException(ExceptionMessages.InvalidPath);
+                throw new InvalidPathException();
             }
 
             SessionData.currentPath = absolutePath;

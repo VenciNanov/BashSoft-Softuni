@@ -1,22 +1,22 @@
-﻿using System;
+﻿using BashSoft.Contracts;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace BashSoft
 {
-    public class RepositoryFilter
+    public class RepositoryFilter : IDataFilter
     {
         public void FilterAndTake(Dictionary<string, double> studentsWithMarks,
-                                          string wantedFilter,
-                                          int studentsToTake)
+                                         string wantedFilter,
+                                         int studentsToTake)
         {
             if (wantedFilter == "excellent")
             {
-                this.FilterAndTake(studentsWithMarks, x => x >= 5, studentsToTake);
+                FilterAndTake(studentsWithMarks, x => x >= 5, studentsToTake);
             }
             else if (wantedFilter == "average")
             {
-                FilterAndTake(studentsWithMarks, x => x < 5 && x >= 3.5, studentsToTake);
+                FilterAndTake(studentsWithMarks, x => x < 5 && x >= 3.50, studentsToTake);
             }
             else if (wantedFilter == "poor")
             {
@@ -40,14 +40,12 @@ namespace BashSoft
                     break;
                 }
 
-               
                 if (givenFilter(studentMark.Value))
                 {
-                    OutputWriter.PrintStudent(new KeyValuePair<string, double>(studentMark.Key,studentMark.Value));
+                    OutputWriter.PrintStudent(new KeyValuePair<string, double>(studentMark.Key, studentMark.Value));
                     counterForPrinted++;
                 }
             }
         }
-
     }
 }

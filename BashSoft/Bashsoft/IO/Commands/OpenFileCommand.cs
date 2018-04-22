@@ -1,26 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
-using BashSoft;
+﻿using BashSoft.Attributes;
 using BashSoft.Exceptions;
+using System.Diagnostics;
 
-namespace Bashsoft.IO.Commands
+namespace BashSoft.IO.Commands
 {
+    [Alias("open")]
     public class OpenFileCommand : Command
     {
-        public OpenFileCommand(string input, string[] data, Tester judge, StudentsRepository repository, IOManager inputOutputManager) : base(input, data, judge, repository, inputOutputManager)
+        public OpenFileCommand(string input, string[] data)
+            : base(input, data)
         {
         }
 
         public override void Execute()
         {
-            if (this.Data.Length!=2)
+            if (this.Data.Length != 2)
             {
                 throw new InvalidCommandException(this.Input);
             }
 
-            var fileName = this.Data[1];
+            string fileName = this.Data[1];
             Process.Start(SessionData.currentPath + "\\" + fileName);
         }
     }

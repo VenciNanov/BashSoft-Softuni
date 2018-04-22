@@ -1,69 +1,45 @@
-﻿using BashSoft;
+﻿using BashSoft.Contracts;
 using BashSoft.Exceptions;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace Bashsoft.IO.Commands
+namespace BashSoft.IO.Commands
 {
-    public abstract class Command
+    public abstract class Command : IExecutable
     {
         private string input;
         private string[] data;
 
-        private Tester judge;
-        private StudentsRepository repository;
-        private IOManager inputOutputManager;
-
-        public Command(string input,string[] data,Tester judge,StudentsRepository repository,IOManager inputOutputManager)
+        protected Command(string input, string[] data)
         {
             this.Input = input;
             this.Data = data;
-            this.judge = judge;
-            this.repository = repository;
-            this.inputOutputManager = inputOutputManager;
         }
 
-        public IOManager InputOutPutManager
+        public string Input
         {
-            get { return inputOutputManager; }
-        }
+            get { return this.input; }
+            private set
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    throw new InvalidStringException();
+                }
 
-        public StudentsRepository Repository
-        {
-            get { return repository; }
-        }
-
-        public Tester Judge
-        {
-            get { return this.judge; }
+                this.input = value;
+            }
         }
 
         public string[] Data
         {
-            get { return data; }
-            set
+            get { return this.data; }
+            private set
             {
                 if (value == null || value.Length == 0)
                 {
                     throw new NullReferenceException();
                 }
-                data = value;
-            }
-        }
 
-
-        public string Input
-        {
-            get { return input; }
-            private set
-            {
-                if (String.IsNullOrEmpty(value))
-                {
-                    throw new InvalidStringException();
-                }
-
-                input = value;
+                this.data = value;
             }
         }
 

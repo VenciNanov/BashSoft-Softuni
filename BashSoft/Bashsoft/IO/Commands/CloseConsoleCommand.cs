@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using BashSoft;
+﻿using BashSoft.Attributes;
+using System;
 
-namespace Bashsoft.IO.Commands
+namespace BashSoft.IO.Commands
 {
-    internal class CloseConsoleCommand : Command
+    [Alias("exit")]
+    public class CloseConsoleCommand : Command
     {
-        public CloseConsoleCommand(string input, string[] data, Tester judge, StudentsRepository repository, IOManager inputOutputManager) : base(input, data, judge, repository, inputOutputManager)
+        public CloseConsoleCommand(string input, string[] data)
+            : base(input, data)
         {
         }
 

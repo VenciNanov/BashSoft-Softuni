@@ -1,11 +1,17 @@
-﻿using Bashsoft.IO.Commands;
+﻿using BashSoft.Attributes;
+using BashSoft.Contracts;
 using BashSoft.Exceptions;
 
-namespace BashSoft
+namespace BashSoft.IO.Commands
 {
-    internal class PrintFilteredStudentsCommand : Command
+    [Alias("filter")]
+    public class PrintFilteredStudentsCommand : Command
     {
-        public PrintFilteredStudentsCommand(string input, string[] data, Tester judge, StudentsRepository repository, IOManager inputOutputManager) : base(input, data, judge, repository, inputOutputManager)
+        [Inject]
+        private IDatabase repository;
+
+        public PrintFilteredStudentsCommand(string input, string[] data)
+            : base(input, data)
         {
         }
 
@@ -19,18 +25,18 @@ namespace BashSoft
             string courseName = this.Data[1];
             string filter = this.Data[2].ToLower();
             string command = this.Data[3].ToLower();
-            string quantity = this.Data[5].ToLower();
+            string quantity = this.Data[4].ToLower();
 
-            TryParseParametersFromFilterAndTak(courseName, filter, command, quantity);
+            TryParseParametersFromFilterAndTake(command, quantity, courseName, filter);
         }
 
-        private void TryParseParametersFromFilterAndTak(string courseName, string filter, string command, string quantity)
+        private void TryParseParametersFromFilterAndTake(string command, string quantity, string courseName, string filter)
         {
             if (command == "take")
             {
                 if (quantity == "all")
                 {
-                    this.Repository.FilterAndTake(courseName, filter);
+                    this.repository.FilterAndTake(courseName, filter);
                 }
                 else
                 {
@@ -38,7 +44,7 @@ namespace BashSoft
                     bool hasParsed = int.TryParse(quantity, out studentsToTake);
                     if (hasParsed)
                     {
-                        this.Repository.FilterAndTake(courseName, filter, studentsToTake);
+                        this.repository.FilterAndTake(courseName, filter, studentsToTake);
                     }
                     else
                     {

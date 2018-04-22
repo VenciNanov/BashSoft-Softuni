@@ -1,14 +1,14 @@
-﻿using BashSoft.Exceptions;
+﻿using BashSoft.Contracts;
+using BashSoft.Exceptions;
 using System;
 using System.IO;
 
 namespace BashSoft
 {
-    public class Tester
+    public class Tester : IContentComparer
     {
         public void CompareContent(string userOutputPath, string expectedOutputPath)
         {
-
             try
             {
                 OutputWriter.WriteMessageOnNewLine("Reading files...");

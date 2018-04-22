@@ -1,5 +1,7 @@
-﻿using Bashsoft.Models;
+﻿using BashSoft.Contracts;
+using BashSoft.DataStructures;
 using BashSoft.Exceptions;
+using BashSoft.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,15 +10,15 @@ using System.Text.RegularExpressions;
 
 namespace BashSoft
 {
-    public class StudentsRepository
+    public class StudentsRepository : IDatabase
     {
         private bool isDataInitialized = false;
-        private Dictionary<string, Course> courses;
-        private Dictionary<string, Student> students;
-        private RepositoryFilter filter;
-        private RepositorySorter sorter;
+        private Dictionary<string, ICourse> courses;
+        private Dictionary<string, IStudent> students;
+        private IDataFilter filter;
+        private IDataSorter sorter;
 
-        public StudentsRepository(RepositoryFilter filter, RepositorySorter sorter)
+        public StudentsRepository(IDataSorter sorter, IDataFilter filter)
         {
             this.filter = filter;
             this.sorter = sorter;
@@ -29,11 +31,11 @@ namespace BashSoft
                 throw new ArgumentException(ExceptionMessages.DataAlreadyInitializedException);
             }
 
-            OutputWriter.WriteMessageOnNewLine("Reading data...");
+            OutputWriter.WriteMessageOnNewLine("Reading data..");
 
-            this.students = new Dictionary<string, Student>();
-            this.courses = new Dictionary<string, Course>();
-            ReadData(fileName);
+            this.courses = new Dictionary<string, ICourse>();
+            this.students = new Dictionary<string, IStudent>();
+            this.ReadData(fileName);
         }
 
         public void UnloadData()
@@ -54,7 +56,7 @@ namespace BashSoft
             if (File.Exists(path))
             {
                 string pattern =
-                    @"A-Z][a-zA-Z#\+]*_[A-Z][a-z]{2}_\d{4})\s+([A-Za-z]+\d{2}_\d{2,4})\s([\s0-9]+)";
+                    @"([A-Z][a-zA-Z#\+]*_[A-Z][a-z]{2}_\d{4})\s+([A-Za-z]+\d{2}_\d{2,4})\s([\s0-9]+)";
                 Regex reg = new Regex(pattern);
 
                 string[] allInputLines = File.ReadAllLines(path);
@@ -70,37 +72,41 @@ namespace BashSoft
                         string username = currentMatch.Groups[2].Value;
                         string scoresStr = currentMatch.Groups[3].Value;
 
-
                         try
                         {
-                            var scores = scoresStr.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToArray();
+                            int[] scores = scoresStr.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                                .Select(int.Parse)
+                                .ToArray();
 
                             if (scores.Any(x => x > 100 || x < 0))
                             {
                                 OutputWriter.DisplayException(ExceptionMessages.InvalidScore);
                                 continue;
                             }
-                            if (scores.Length > Course.NumberOfTasksOnExam)
+
+                            if (scores.Length > SoftUniCourse.NumberOfTasksOnExam)
                             {
                                 OutputWriter.DisplayException(ExceptionMessages.InvalidNumberOfScores);
                                 continue;
                             }
+
                             if (!this.students.ContainsKey(username))
                             {
-                                this.students.Add(username, new Student(username));
+                                this.students.Add(username, new SoftUniStudent(username));
                             }
+
                             if (!this.courses.ContainsKey(courseName))
                             {
-                                this.courses.Add(courseName, new Course(courseName));
-
-                                Course course = this.courses[courseName];
-                                Student student = this.students[username];
-
-                                student.EnrollInCourse(course);
-                                student.SetMarksOnCourse(courseName, scores);
-
-                                course.EnrollStudent(student);
+                                this.courses.Add(courseName, new SoftUniCourse(courseName));
                             }
+
+                            ICourse softUniCourse = this.courses[courseName];
+                            IStudent softUniStudent = this.students[username];
+
+                            softUniStudent.EnrollInCourse(softUniCourse);
+                            softUniStudent.SetMarksInCourse(courseName, scores);
+
+                            softUniCourse.EnrollStudent(softUniStudent);
                         }
                         catch (FormatException fex)
                         {
@@ -127,9 +133,11 @@ namespace BashSoft
                     studentsToTake = this.courses[courseName].StudentsByName.Count;
                 }
 
-                Dictionary<string, double> marks = this.courses[courseName].StudentsByName.ToDictionary(x => x.Key, x => x.Value.MarksByCourseName[courseName]);
+                Dictionary<string, double> marks =
+                    this.courses[courseName].StudentsByName
+                        .ToDictionary(x => x.Key, x => x.Value.MarksByCourseName[courseName]);
 
-                this.filter.FilterAndTake(marks, givenFilter, studentsToTake.Value);
+                filter.FilterAndTake(marks, givenFilter, studentsToTake.Value);
             }
         }
 
@@ -142,9 +150,11 @@ namespace BashSoft
                     studentsToTake = this.courses[courseName].StudentsByName.Count;
                 }
 
-                Dictionary<string, double> marks = this.courses[courseName].StudentsByName.ToDictionary(x => x.Key, x => x.Value.MarksByCourseName[courseName]);
+                Dictionary<string, double> marks =
+                    this.courses[courseName].StudentsByName
+                        .ToDictionary(x => x.Key, x => x.Value.MarksByCourseName[courseName]);
 
-                this.sorter.OrderAndTake(marks, comparison, studentsToTake.Value);
+                sorter.OrderAndTake(marks, comparison, studentsToTake.Value);
             }
         }
 
@@ -169,7 +179,8 @@ namespace BashSoft
 
         private bool IsQueryFromStudentPossible(string courseName, string studentUserName)
         {
-            if (IsQueryFromCoursePossible(courseName) && this.courses[courseName].StudentsByName.ContainsKey(studentUserName))
+            if (IsQueryFromCoursePossible(courseName) &&
+                courses[courseName].StudentsByName.ContainsKey(studentUserName))
             {
                 return true;
             }
@@ -183,7 +194,8 @@ namespace BashSoft
         {
             if (IsQueryFromStudentPossible(courseName, username))
             {
-                OutputWriter.PrintStudent(new KeyValuePair<string, double>(username, this.courses[courseName].StudentsByName[username].MarksByCourseName[courseName]));
+                OutputWriter.PrintStudent(new KeyValuePair<string, double>(username,
+                    this.courses[courseName].StudentsByName[username].MarksByCourseName[courseName]));
             }
         }
 
@@ -197,6 +209,24 @@ namespace BashSoft
                     this.GetStudentScoresFromCourse(courseName, studentMarksEntry.Key);
                 }
             }
+        }
+
+        public ISimpleOrderedBag<ICourse> GetAllCoursesSorted(IComparer<ICourse> cmp)
+        {
+            SimpleSortedList<ICourse> sortedCourses = new SimpleSortedList<ICourse>(cmp);
+
+            sortedCourses.AddAll(this.courses.Values);
+
+            return sortedCourses;
+        }
+
+        public ISimpleOrderedBag<IStudent> GetAllStudentsSorted(IComparer<IStudent> cmp)
+        {
+            SimpleSortedList<IStudent> sortedStudents = new SimpleSortedList<IStudent>(cmp);
+
+            sortedStudents.AddAll(this.students.Values);
+
+            return sortedStudents;
         }
     }
 }
